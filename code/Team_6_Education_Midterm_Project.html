@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8'>
+<title>Team 6 - Education Midterm Project</title>
+<style>
+body { font-family: 'Arial', sans-serif; margin: 2em; background-color: #fdfdfd; color: #333; }
+h1 { color: #004080; }
+h2, h3 { color: #003366; margin-top: 2em; }
+pre { background-color: #f4f4f4; border-left: 5px solid #ccc; padding: 1em; overflow-x: auto; }
+code { font-family: 'Courier New', monospace; }
+.markdown { margin-bottom: 1.5em; }
+.output { background: #eaffea; padding: 0.5em 1em; border-left: 4px solid #5cb85c; margin-bottom: 1.5em; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<h1>Team 6 - Education Midterm Project</h1>
+<div class='markdown'># **EduBot: Educational Chatbot Midterm Project**</div>
+<div class='markdown'># **Section 1: Introduction**
+
+---
+By dividing the work into clear, focused sections and assigning each to a dedicated team member, we ensure parallel development, streamlined integration, and a robust feedback loop that drives ongoing improvement.
+
+**Team Members name and their assigned parts:**
+1. Natalia Solorzano - Sections 2 & 3 (Introduction & Document Ingestion)
+2. Katherine Stanton - Sections 4 & 5 (Indexing & Chat Interface)
+3. Jaya Verma (Team Manager) - Section 1 and 6 (Feedback Log & Self Learning)
+4. Mustafa Yucedag - Section 7 (Saving Logs)
+5. Ali Safdar Zaidi - Section 8 (Evaluation)
+
+
+
+</div>
+<div class='markdown'># **Project Overview:**
+
+EduBot is a retrieval-based educational chatbot that learns over time or by itself. It retrieves relevant information from a provided .txt document, accepts feedback from the user, save the correct answers and logs that data for future improvement.
+
+EduBot begins by loading a user-provided text document (uploading your own text is also available) and then cleans and partitions it into coherent, meaningful chunks. Each chunk is transformed into a dense vector embedding and indexed for lightning-fast similarity searches. Users engage with EduBot through a simple command-line chat interface and it prompts for feedback, and whenever the bot is unsure or makes an error, it requests the correct answer so it can continuously learn and improve. Those corrections are seamlessly appended back into the source text to fuel continuous learning, while every interaction and feedback entry is archived. Finally, EduBot rigorously evaluates its own performance against a set of predefined botanical queries to measure accuracy and guide further refinement.
+
+Project Sections:
+
+1. Introduction
+2. Initialization
+3. Document Ingestion
+4. Indexing
+5. Chat Interface
+6. Feedback Log and Self Learning
+7. Saving Logs
+8. Evaluation
+9. Conclusion
+
+
+
+</div>
+<div class='markdown'># **Section 2: Initialization**</div>
+<pre><code>
+# Install dependencies
+!pip install -q sentence-transformers faiss-cpu
+</code></pre>
+<div class='output'>
+[2K   [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m31.3/31.3 MB[0m [31m14.3 MB/s[0m eta [36m0:00:00[0m
+[2K   [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m363.4/363.4 MB[0m [31m3.2 MB/s[0m eta [36m0:00:00[0m
+[2K   [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m13.8/13.8 MB[0m [31m19.6 MB/s[0m eta [36m0:00:00[0m
+[2K   [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m24.6/24.6 MB[0m [31m38.4 MB/s[0m eta [36m0:00:00[0m
+[2K   [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m883.7/883.7 kB[0m [31m21.4 MB/s[0m eta [36m0:00:00[0m
+[2K   [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m664.8/664.8 MB[0m [31m2.7 MB/s[0m eta [36m0:00:00[0m
+[2K   [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m211.5/211.5 MB[0m [31m5.8 MB/s[0m eta [36m0:00:00[0m
+[2K   [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m56.3/56.3 MB[0m [31m10.5 MB/s[0m eta [36m0:00:00[0m
+[2K   [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m127.9/127.9 MB[0m [31m8.0 MB/s[0m eta [36m0:00:00[0m
+[2K   [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m207.5/207.5 MB[0m [31m6.0 MB/s[0m eta [36m0:00:00[0m
+[2K   [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m21.1/21.1 MB[0m [31m48.7 MB/s[0m eta [36m0:00:00[0m
+[?25h
+</div>
+<pre><code>
+# Import libraries
+from sentence_transformers import SentenceTransformer
+import faiss
+import numpy as np
+</code></pre>
+<pre><code>
+# Load Embedding Model
+model = SentenceTransformer(&#x27;all-MiniLM-L6-v2&#x27;)
+</code></pre>
+<div class='output'>
+/usr/local/lib/python3.11/dist-packages/huggingface_hub/utils/_auth.py:94: UserWarning: 
+The secret `HF_TOKEN` does not exist in your Colab secrets.
+To authenticate with the Hugging Face Hub, create a token in your settings tab (https://huggingface.co/settings/tokens), set it as secret in your Google Colab and restart your session.
+You will be able to reuse this secret in all of your notebooks.
+Please note that authentication is recommended but still optional to access public models or datasets.
+  warnings.warn(
+
+</div>
+<div class='output'>
+Xet Storage is enabled for this repo, but the &#x27;hf_xet&#x27; package is not installed. Falling back to regular HTTP download. For better performance, install the package with: `pip install huggingface_hub[hf_xet]` or `pip install hf_xet`
+WARNING:huggingface_hub.file_download:Xet Storage is enabled for this repo, but the &#x27;hf_xet&#x27; package is not installed. Falling back to regular HTTP download. For better performance, install the package with: `pip install huggingface_hub[hf_xet]` or `pip install hf_xet`
+
+</div>
+<div class='markdown'># **Section 3: Document Ingestion**</div>
+<pre><code>
+# Example sample .txt file
+sample_text = &quot;&quot;&quot;
+Photosynthesis is the process by which green plants convert sunlight into chemical energy.
+Photosynthesis happens in the chloroplasts of plants.
+It primarily takes place in the chloroplasts of plant cells using chlorophyll.
+During photosynthesis, plants split water molecules and release oxygen as a byproduct.
+Mitochondria are the organelles responsible for cellular respiration in most eukaryotic organisms.
+The water cycle includes processes like evaporation, condensation, precipitation, and collection.
+&quot;&quot;&quot;
+</code></pre>
+<pre><code>
+# Creating a txt file and adding the sample_text to it
+with open(&quot;study_guide.txt&quot;, &quot;w&quot;, encoding=&quot;utf-8&quot;) as f:
+  f.write(sample_text)
+</code></pre>
+<pre><code>
+#Function to load text file
+def read_text_file(filepath):
+    with open(filepath, &quot;r&quot;, encoding=&quot;utf-8&quot;) as f:
+        return f.read()
+</code></pre>
+<pre><code>
+#Ask user if they want to provide an alternate file with input text
+file_path = &quot;&quot;
+user_input = input(&quot;Do you want to provide an alternate file with input text? (yes/no): &quot;)
+</code></pre>
+<div class='output'>
+Do you want to provide an alternate file with input text? (yes/no): no
+
+</div>
+<pre><code>
+#User to provide file path name
+if user_input.lower() == &quot;yes&quot;:
+  file_path = input(&quot;Please enter the file path: &quot;)
+</code></pre>
+<pre><code>
+# Load the text file
+if file_path != &quot;&quot;:
+  raw_text = read_text_file(file_path)
+else:
+  raw_text = read_text_file(&quot;study_guide.txt&quot;)
+</code></pre>
+<pre><code>
+# Preview raw text
+print(raw_text[:500])
+</code></pre>
+<div class='output'>
+
+Photosynthesis is the process by which green plants convert sunlight into chemical energy.
+Photosynthesis happens in the chloroplasts of plants.
+It primarily takes place in the chloroplasts of plant cells using chlorophyll.
+During photosynthesis, plants split water molecules and release oxygen as a byproduct.
+Mitochondria are the organelles responsible for cellular respiration in most eukaryotic organisms.
+The water cycle includes processes like evaporation, condensation, precipitation, and col
+
+</div>
+<pre><code>
+# Clean the text
+import re
+</code></pre>
+<pre><code>
+# Function to clean text
+def clean_text(text):
+  return re.sub(r&#x27;\s+&#x27;, &#x27; &#x27;, text).strip()
+</code></pre>
+<div class='markdown'># **Section 4: Indexing**</div>
+<pre><code>
+# Split Document into Chunks
+def chunk_text(cleaned_text):
+  chunks = [chunk.strip() for chunk in cleaned_text.split(&#x27;.&#x27;) if chunk.strip()]
+  return chunks
+</code></pre>
+<pre><code>
+print(chunk_text(raw_text))
+</code></pre>
+<div class='output'>
+[&#x27;Photosynthesis is the process by which green plants convert sunlight into chemical energy&#x27;, &#x27;Photosynthesis happens in the chloroplasts of plants&#x27;, &#x27;It primarily takes place in the chloroplasts of plant cells using chlorophyll&#x27;, &#x27;During photosynthesis, plants split water molecules and release oxygen as a byproduct&#x27;, &#x27;Mitochondria are the organelles responsible for cellular respiration in most eukaryotic organisms&#x27;, &#x27;The water cycle includes processes like evaporation, condensation, precipitation, and collection&#x27;]
+
+</div>
+<pre><code>
+# Convert Chunks to Embeddings
+def get_embeddings(chunks):
+  embeddings = model.encode(chunks)
+  return embeddings
+</code></pre>
+<pre><code>
+print(get_embeddings(chunk_text(raw_text)))
+</code></pre>
+<div class='output'>
+[[-0.03746832  0.08341513 -0.07408398 ...  0.00642773  0.11970276
+   0.03669469]
+ [-0.09241229  0.05431336 -0.06505557 ...  0.05465455  0.10240392
+   0.03836809]
+ [-0.03043448  0.06134078 -0.08466677 ...  0.07146075  0.11353976
+   0.08455159]
+ [-0.07928682  0.04105349 -0.05025402 ...  0.02758326  0.10423808
+   0.00959533]
+ [-0.02425315 -0.01911802 -0.03006259 ...  0.06686077  0.12634906
+  -0.02936398]
+ [-0.05585502 -0.00576352  0.00807573 ...  0.01571754  0.04584507
+  -0.03591986]]
+
+</div>
+<pre><code>
+# Visualization: Chunk Length Distribution
+
+import matplotlib.pyplot as plt
+
+# Call chunk_text with raw_text to get chunks
+chunks = chunk_text(raw_text)
+
+chunk_lengths = [len(chunk) for chunk in chunks]
+
+plt.figure(figsize=(8, 5))
+plt.hist(chunk_lengths, bins=20, color=&#x27;skyblue&#x27;, edgecolor=&#x27;black&#x27;)
+plt.title(&#x27;Distribution of Chunk Lengths&#x27;)
+plt.xlabel(&#x27;Number of Characters&#x27;)
+plt.ylabel(&#x27;Number of Chunks&#x27;)
+plt.grid(True)
+plt.show()
+</code></pre>
+<pre><code>
+# Index Embeddings with FAISS
+def index_embeddings(embeddings):
+  index = faiss.IndexFlatL2(embeddings[0].shape[0])
+  index.add(np.array(embeddings))
+  return index
+</code></pre>
+<pre><code>
+print(index_embeddings(get_embeddings(chunk_text(raw_text))).ntotal)
+</code></pre>
+<div class='output'>
+6
+
+</div>
+<pre><code>
+# Preview Final Text
+cleaned_text = clean_text(raw_text)
+chunks = chunk_text(cleaned_text)
+</code></pre>
+<pre><code>
+embeddings = get_embeddings(chunks)
+</code></pre>
+<pre><code>
+index = index_embeddings(embeddings)
+</code></pre>
+<pre><code>
+print(cleaned_text[:500])
+</code></pre>
+<div class='output'>
+Photosynthesis is the process by which green plants convert sunlight into chemical energy. Photosynthesis happens in the chloroplasts of plants. It primarily takes place in the chloroplasts of plant cells using chlorophyll. During photosynthesis, plants split water molecules and release oxygen as a byproduct. Mitochondria are the organelles responsible for cellular respiration in most eukaryotic organisms. The water cycle includes processes like evaporation, condensation, precipitation, and coll
+
+</div>
+<pre><code>
+# Search Index Function
+def search_index(query, k=1):
+  query_vec = model.encode([query])
+  D, I = index.search(np.array(query_vec), k)
+  return [chunks[i] for i in I[0]]
+</code></pre>
+<div class='markdown'># **Section 5: Chat Interface**</div>
+<pre><code>
+chat_history = []
+</code></pre>
+<pre><code>
+# Adding to Chat History
+def add_to_history(role, message):
+  chat_history.append({&#x27;role&#x27;: role, &#x27;message&#x27;: message})
+</code></pre>
+<pre><code>
+# Creating Chatbot Reply
+def chatbot_reply(query):
+  results = search_index(query, k=1)
+  return results[0] if results else &quot;I&#x27;m not sure, could you clarify?&quot;
+</code></pre>
+<pre><code>
+# Executing Chat History and Chatbot Reply
+def chat_with_context(query):
+  add_to_history(&#x27;user&#x27;, query)
+  response = chatbot_reply(query)
+  add_to_history(&#x27;bot&#x27;, response)
+  return response
+</code></pre>
+<pre><code>
+# Simulate Chat Input
+while True:
+    user_query = input(&quot;Question (type &#x27;exit&#x27; to quit or ask question): &quot;)
+    if user_query.lower() in (&#x27;exit&#x27;, &#x27;quit&#x27;):
+        print(&quot;Goodbye!&quot;)
+        break
+    bot_response = chat_with_context(user_query)
+    print(&quot;EduBot:&quot;, bot_response)
+</code></pre>
+<div class='output'>
+Question (type &#x27;exit&#x27; to quit or ask question): What is photosynthesis?
+EduBot: Photosynthesis is the process by which green plants convert sunlight into chemical energy
+Question (type &#x27;exit&#x27; to quit or ask question): exit
+Goodbye!
+
+</div>
+<pre><code>
+# View Full Chat History
+for turn in chat_history:
+  prefix = &quot;Question&quot; if turn[&#x27;role&#x27;] == &#x27;user&#x27; else &quot;EduBot&quot;
+  print(f&quot;{prefix}: {turn[&#x27;message&#x27;]}&quot;)
+</code></pre>
+<div class='output'>
+Question: What is photosynthesis?
+EduBot: Photosynthesis is the process by which green plants convert sunlight into chemical energy
+
+</div>
+<pre><code>
+# Visualization: 2D Projection of Text Embeddings (PCA)
+
+from sklearn.decomposition import PCA
+import numpy as np
+
+X = np.array(embeddings)
+pca = PCA(n_components=2)
+X_reduced = pca.fit_transform(X)
+
+plt.figure(figsize=(8,6))
+plt.scatter(X_reduced[:, 0], X_reduced[:, 1], alpha=0.7)
+plt.title(&#x27;2D PCA Projection of Embeddings&#x27;)
+plt.xlabel(&#x27;Principal Component 1&#x27;)
+plt.ylabel(&#x27;Principal Component 2&#x27;)
+plt.grid(True)
+plt.show()
+</code></pre>
+<div class='markdown'># **Section 6: Feedback Log and Self Learning**</div>
+<pre><code>
+feedback_log = []
+</code></pre>
+<pre><code>
+#Ask user if they want to provide feedback on the responses
+user_input = input(&quot;Do you want to provide feedback on the responses? (yes/no): &quot;)
+</code></pre>
+<div class='output'>
+Do you want to provide feedback on the responses? (yes/no): yes
+
+</div>
+<pre><code>
+# Creating Feedback Response
+def get_feedback():
+  print(&quot;Was this answer helpful? (y/n)&quot;)
+  response = input().strip().lower()
+  return response == &#x27;y&#x27;
+</code></pre>
+<pre><code>
+# Updating ChatBot Response to Correct Response
+def collect_correction():
+  print(&quot;Please enter the correct answer:&quot;)
+  response = input().strip()
+  return response
+</code></pre>
+<pre><code>
+# Updating Study_guide.txt With Correct Response
+def update_study_guide():
+  with open(&quot;study_guide.txt&quot;, &quot;a&quot;, encoding=&quot;utf-8&quot;) as f:
+    f.write(new_response + &quot;\n&quot;)
+  print(&quot;EduBot: Answer saved to study_guide.txt.&quot;)
+</code></pre>
+<pre><code>
+# Creating Feedback Loop with User Input
+if user_input.lower() == &quot;yes&quot;:
+  while True:
+      user_query = input(&quot;Question (type &#x27;exit&#x27; to quit or ask question): &quot;)
+      if user_query.lower() in (&#x27;exit&#x27;, &#x27;quit&#x27;):
+          print(&quot;Goodbye!&quot;)
+          break
+
+      bot_response = chat_with_context(user_query)
+      print(&quot;EduBot:&quot;, bot_response)
+
+      # Calling feedback function
+      helpful = get_feedback()
+      feedback_log.append({
+          &#x27;question&#x27;: user_query,
+          &#x27;response&#x27;: bot_response,
+          &#x27;helpful&#x27;: helpful
+      })
+
+  #    for n in feedback_log:
+      if not helpful:
+        new_response = collect_correction()
+        feedback_log.append({
+            &#x27;question&#x27;: user_query,
+            &#x27;response&#x27;: new_response,
+            &#x27;helpful&#x27;: True
+        })
+        update_study_guide()
+
+        # Updating Final Text
+        raw_text = read_text_file(&quot;study_guide.txt&quot;)
+        cleaned_text = clean_text(raw_text)
+        chunks = chunk_text(cleaned_text)
+        embeddings = get_embeddings(chunks)
+        index = index_embeddings(embeddings)
+
+
+</code></pre>
+<div class='output'>
+Question (type &#x27;exit&#x27; to quit or ask question): What is photosynthesis?
+EduBot: Photosynthesis is the process by which green plants convert sunlight into chemical energy
+Was this answer helpful? (y/n)
+y
+Question (type &#x27;exit&#x27; to quit or ask question): What is the function of chylorphyll?
+EduBot: It primarily takes place in the chloroplasts of plant cells using chlorophyll
+Was this answer helpful? (y/n)
+n
+Please enter the correct answer:
+Chlorophyll&#x27;s primary function is to absorb light energy, primarily sunlight, and convert it into chemical energy that plants use for photosynthesis.
+EduBot: Answer saved to study_guide.txt.
+Question (type &#x27;exit&#x27; to quit or ask question): exit
+Goodbye!
+
+</div>
+<pre><code>
+# Evaluation using Feedback Log
+
+# Calculate Accuracy
+correct_responses = sum(1 for entry in feedback_log if entry[&#x27;helpful&#x27;])
+total_responses = len(feedback_log)
+accuracy = (correct_responses / total_responses) * 100 if total_responses else 0
+
+print(f&quot;Accuracy based on feedback: {accuracy:.2f}%&quot;)
+</code></pre>
+<div class='output'>
+Accuracy based on feedback: 66.67%
+
+</div>
+<pre><code>
+# Printing Feedback Log, Raw Text, and Cleaned Text
+print(feedback_log)
+</code></pre>
+<div class='output'>
+[{&#x27;question&#x27;: &#x27;What is photosynthesis?&#x27;, &#x27;response&#x27;: &#x27;Photosynthesis is the process by which green plants convert sunlight into chemical energy&#x27;, &#x27;helpful&#x27;: True}, {&#x27;question&#x27;: &#x27;What is the function of chylorphyll?&#x27;, &#x27;response&#x27;: &#x27;It primarily takes place in the chloroplasts of plant cells using chlorophyll&#x27;, &#x27;helpful&#x27;: False}, {&#x27;question&#x27;: &#x27;What is the function of chylorphyll?&#x27;, &#x27;response&#x27;: &quot;Chlorophyll&#x27;s primary function is to absorb light energy, primarily sunlight, and convert it into chemical energy that plants use for photosynthesis.&quot;, &#x27;helpful&#x27;: True}]
+
+</div>
+<pre><code>
+print(raw_text)
+</code></pre>
+<div class='output'>
+
+Photosynthesis is the process by which green plants convert sunlight into chemical energy.
+Photosynthesis happens in the chloroplasts of plants.
+It primarily takes place in the chloroplasts of plant cells using chlorophyll.
+During photosynthesis, plants split water molecules and release oxygen as a byproduct.
+Mitochondria are the organelles responsible for cellular respiration in most eukaryotic organisms.
+The water cycle includes processes like evaporation, condensation, precipitation, and collection.
+Chlorophyll&#x27;s primary function is to absorb light energy, primarily sunlight, and convert it into chemical energy that plants use for photosynthesis.
+
+
+</div>
+<pre><code>
+print(cleaned_text[:1000])
+</code></pre>
+<div class='output'>
+Photosynthesis is the process by which green plants convert sunlight into chemical energy. Photosynthesis happens in the chloroplasts of plants. It primarily takes place in the chloroplasts of plant cells using chlorophyll. During photosynthesis, plants split water molecules and release oxygen as a byproduct. Mitochondria are the organelles responsible for cellular respiration in most eukaryotic organisms. The water cycle includes processes like evaporation, condensation, precipitation, and collection. Chlorophyll&#x27;s primary function is to absorb light energy, primarily sunlight, and convert it into chemical energy that plants use for photosynthesis.
+
+</div>
+<div class='markdown'># **Section 7: Saving Logs**</div>
+<pre><code>
+import json
+</code></pre>
+<pre><code>
+# Creating Feedback Log Function
+def save_feedback_log(filename=&quot;feeback_log.jsonl&quot;):
+  with open(filename, &quot;w&quot;, encoding=&quot;utf-8&quot;) as f:
+    for item in feedback_log:
+      json.dump(item, f)
+      f.write(&#x27;\n&#x27;)
+</code></pre>
+<pre><code>
+# Creating Chat History Function
+def save_chat_history(filename=&quot;chat_log.json&quot;):
+  with open(filename, &quot;w&quot;, encoding=&quot;utf-8&quot;) as f:
+    json.dump(chat_history, f, indent=2)
+</code></pre>
+<pre><code>
+# Saving Chat History and Feedback Log Functions
+def save_all_logs():
+  save_chat_history()
+  save_feedback_log()
+</code></pre>
+<pre><code>
+# Saving Chat History and Feedback Log
+save_all_logs()
+</code></pre>
+<div class='markdown'># **Section 8: Evaluation**</div>
+<pre><code>
+# Creating Test Cases
+test_cases = [
+    {&quot;query&quot;: &quot;Where does photosynthesis happen?&quot;, &quot;expected&quot;: &quot;chloroplasts&quot;},
+    {&quot;query&quot;: &quot;What is the function of mitochondria?&quot;, &quot;expected&quot;: &quot;cellular respiration&quot;},
+    {&quot;query&quot;: &quot;Name the steps in the water cycle.&quot;, &quot;expected&quot;: &quot;evaporation&quot;},
+    {&quot;query&quot;: &quot;What pigment, found in chloroplasts, reflects green light?&quot;, &quot;expected&quot;: &quot;chlorophyll&quot;},
+    {&quot;query&quot;: &quot;What is the function of chylorphyll?&quot;,&quot;expected&quot;: &quot;Chlorophyll&#x27;s primary function is to absorb light energy, primarily sunlight, and convert it into chemical energy that plants use for photosynthesis&quot;}
+
+]
+</code></pre>
+<pre><code>
+# Creating matrix With Actual Chatbot Answers
+for case in test_cases:
+  case[&quot;actual&quot;] = chatbot_reply(case[&quot;query&quot;])
+</code></pre>
+<pre><code>
+# Creating a Function to Evaluate Cases
+def evaluate_case(expected, actual):
+  return expected.lower() in actual.lower()
+</code></pre>
+<pre><code>
+# Printing Pass and Fail for the Test Cases
+if user_input.lower() == &quot;yes&quot;:
+  for case in test_cases:
+    case[&quot;score&quot;] = int(evaluate_case(case[&quot;expected&quot;], case[&quot;actual&quot;]))
+    print(f&quot;Query: {case[&#x27;query&#x27;]}\nExpected: {case[&#x27;expected&#x27;]}\nActual: {case[&#x27;actual&#x27;]}\nResult: {&#x27;✅ Pass&#x27; if case[&#x27;score&#x27;] else &#x27;❌ Fail&#x27;}\n&quot;)
+</code></pre>
+<div class='output'>
+Query: Where does photosynthesis happen?
+Expected: chloroplasts
+Actual: Photosynthesis happens in the chloroplasts of plants
+Result: ✅ Pass
+
+Query: What is the function of mitochondria?
+Expected: cellular respiration
+Actual: Mitochondria are the organelles responsible for cellular respiration in most eukaryotic organisms
+Result: ✅ Pass
+
+Query: Name the steps in the water cycle.
+Expected: evaporation
+Actual: The water cycle includes processes like evaporation, condensation, precipitation, and collection
+Result: ✅ Pass
+
+Query: What pigment, found in chloroplasts, reflects green light?
+Expected: chlorophyll
+Actual: Photosynthesis happens in the chloroplasts of plants
+Result: ❌ Fail
+
+Query: What is the function of chylorphyll?
+Expected: Chlorophyll&#x27;s primary function is to absorb light energy, primarily sunlight, and convert it into chemical energy that plants use for photosynthesis
+Actual: Chlorophyll&#x27;s primary function is to absorb light energy, primarily sunlight, and convert it into chemical energy that plants use for photosynthesis
+Result: ✅ Pass
+
+
+</div>
+<pre><code>
+# Calculating Accuracy
+if user_input.lower() == &quot;yes&quot;:
+  correct = sum(case[&quot;score&quot;] for case in test_cases)
+  accuracy = correct / len(test_cases) * 100
+</code></pre>
+<pre><code>
+#Print Accuracy
+if user_input.lower() == &quot;yes&quot;:
+  print(f&quot;Accuracy: {accuracy:.2f}%&quot;)
+</code></pre>
+<div class='output'>
+Accuracy: 80.00%
+
+</div>
+<pre><code>
+print(chat_history)
+</code></pre>
+<div class='output'>
+[{&#x27;role&#x27;: &#x27;user&#x27;, &#x27;message&#x27;: &#x27;What is photosynthesis?&#x27;}, {&#x27;role&#x27;: &#x27;bot&#x27;, &#x27;message&#x27;: &#x27;Photosynthesis is the process by which green plants convert sunlight into chemical energy&#x27;}, {&#x27;role&#x27;: &#x27;user&#x27;, &#x27;message&#x27;: &#x27;What is photosynthesis?&#x27;}, {&#x27;role&#x27;: &#x27;bot&#x27;, &#x27;message&#x27;: &#x27;Photosynthesis is the process by which green plants convert sunlight into chemical energy&#x27;}, {&#x27;role&#x27;: &#x27;user&#x27;, &#x27;message&#x27;: &#x27;What is the function of chylorphyll?&#x27;}, {&#x27;role&#x27;: &#x27;bot&#x27;, &#x27;message&#x27;: &#x27;It primarily takes place in the chloroplasts of plant cells using chlorophyll&#x27;}]
+
+</div>
+<div class='markdown'>## **Section 9: Conclusion**
+
+
+1. Initialization completed: all dependencies installed and the embedding model loaded.
+2. Document ingestion module reads and previews raw text successfully.
+3. Text cleaning standardizes whitespace and formatting.
+4. Chunking function splits the document into semantically coherent units.
+5. Embedding pipeline encodes all chunks into vector representations.
+6. FAISS index built to support fast nearest-neighbor search.
+7. Chat interface maintains history and retrieves answers based on similarity.
+8. Feedback mechanism prompts users for corrections when the bot is unsure or incorrect.
+9. Feedback logging persists user responses and corrections in a JSON-lines file. Also, it will give accuracy based on the Feedback log.
+10. Chat history saving archives all interactions for audit and review.
+11. Evaluation suite defined five test cases covering core botanical questions.
+12. Performance metric: achieved 80 % accuracy on the initial test set.
+13. Modularity: each section can be extended or replaced (e.g., swap FAISS for another index).
+14. Scalability plan: next steps include batch re-indexing on large corpora and GPU acceleration.
+15. Team collaboration: clear role assignments enabled parallel workflow and efficient integration.
+
+
+
+
+### End of Group 6 Midterm Project.
+</div>
+<div class='markdown'># **References**
+1. Breuss, M. (n.d.) ChatterBot: *Build a Chatbot With Python*. Real Python. [realpython.com/build-a-chatbot-python-chatterbot/](https://)
+2. Goutam, P. (2024, March 20). *Use FAISS to Build Similarity Search*. Medium. [medium.com/@pratikgtm/use-faiss-to-build-similarity-search-9f6238d9f634](https://)
+3. OpenAI. (2025). ChatGPT (GPT-4, April 2024 version) [Large language model]. [https://chat.openai.com/](https://)
+4. Oracle. (2020, October 7). *What Is a Chatbot?* Oracle. [www.oracle.com/chatbots/what-is-a-chatbot/](https://)
+5. Prakashchand, L. (2024, June 14). *Similarity Search with FAISS: A Practical Guide to Efficient Indexing and Retrieval*. Medium. [medium.com/@devbytes/similarity-search-with-faiss-a-practical-guide-to-efficient-indexing-and-retrieval-e99dd0e55e8c](https://)
+
+</div>
+</body></html>
