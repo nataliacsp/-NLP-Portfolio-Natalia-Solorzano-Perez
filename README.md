@@ -46,3 +46,4 @@ NLP_Portfolio_NataliaSolorzanoPerez/
     └── edubot/project folder
 
 Notes: more files were added for the porfolio references, however, main idea stays the same, the labs that were important to EduBot were the ones highlighted on the Portfolio, however the report has the complete reflections for each lab and how the knowledge was applied on the making of EduBot.
+Note: Presentation could not be added due to file size, even as a .zip file. 
