@@ -1,3 +1,8 @@
+#Prof. DEBARY MY PRESENTATION LINK https://www.canva.com/design/DAGop4uWmK8/_7RUhO-Rm4F0SAvpVCiiLA/view?utm_content=DAGop4uWmK8&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h05b548de50
+
+
+
+
 # 🧠 NLP Portfolio – Natalia Solorzano Perez
 
 **Course**: ITAI 2373 – Natural Language Processing  
